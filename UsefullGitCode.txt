@@ -1,0 +1,33 @@
+
+git status
+
+git init
+
+git log
+
+git add
+
+git commit -m "mesaj"
+
+(git config --global core.editor "gedit --wait --new-window") 
+
+( touch .gitignore ile klasör oluştur, içine takip edilmesini istemediklerini ekle)
+
+git branch 
+
+git branch <yenibranchismi> 
+
+git switch <branchismi> (headerı taşır)
+
+*************** şu ana kadar yapılanlar bizim pc de yani localde takip gerçekleştirdik. Hiç githuba yollamadık *******************
+
+git remote add origin <url> ( bu url'i uzaktan kontrol edicez ve artık urlyi habire yazamam bu yüzden origin dediğimde orayı anla demiş oluyoruz)
+
+git push -u origin main ( benim main branchindeki commitleri origin'e push et, ittir ) bunu çalıştırırken ve öncekileri çalıştırırken pc de proje klasörü içinde olduğumuza emin olmalıyız
+
+
+git branch -r (uzak repo yani online githubdaki branchleri gösterir. localdekinden farklılık var mı kontrol etmiş oluruz)
+
+git fetch ile githubtaki değişiklikleri alabiliriz ama bu locale getirdiğimiz anlamına gelmez. git status çalıştırdığımızda github ile localimiz arasındaki senkronizasyon farklılığını anlamak için önce git fetch ile githubı almak lazım
+
+git fetch, git pull, git push syntaxleri aynıdır. origin <branchname> şeklinde devam edebilir
