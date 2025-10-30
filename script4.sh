@@ -1,3 +1,4 @@
+#!/bin/bash
 #this script copies files larger than 1MB to large_files
 #others to small_files
 #prints a report of file counts
