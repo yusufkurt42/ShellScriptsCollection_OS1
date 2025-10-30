@@ -1,3 +1,4 @@
+#!/bin/bash
 #This script takes a directory as argument and in that directory:
 #-creates a backup directory with a name that includes today's date
 #-copies all .txt and .sh files from the given directory into that backup folder
