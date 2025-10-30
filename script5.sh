@@ -5,55 +5,50 @@ if [ "$#" -ne 2 ]; then
     echo "Example: $0 docs proj_"
     exit 1
 fi
+cd $1
+echo "Operating on $1"
 
-DIR="$1"
-PREFIX="$2"
-RENAME_COUNT=0
-RENAMED_LIST=""
+# Export $2 as an environment variable to make it usable inside rename_logic
+export prefix="$2"
 
-if [ ! -d "$DIR" ]; then
-    echo "Error: Directory '$DIR' not found."
-    exit 1
-fi
-
-rename() {
-    local search_path="$1" # bunlar fonksiyonun parametreleri
-    local depth_opt="$2"
+# Define the logic to rename a file AND print its new name.
+# '$0' is the file path find passes to sh (e.g., ./sub/notes.txt)
+rename_logic='
+    file="$0"
+    dir=$(dirname -- "$file")
+    base=$(basename -- "$file")
+    new_base="$prefix$base"
     
-    find "$search_path" $depth_opt -type f -name "*.txt" -print0 | 
-    
-    while IFS= read -r -d $'\0' fullpath; do    
-        filename=$(bax	sename "$fullpath")
-        dirpart=$(dirname "$fullpath")
-        newname="${PREFIX}${filename}"
-        
-        mv "$fullpath" "$dirpart/$newname"
-        
-        RENAMED_LIST+="${newname}, "
-        RENAME_COUNT=$((RENAME_COUNT + 1))
-    done
+    mv -- "$file" "$dir/$new_base" && echo "$new_base"
+'
+
+# Define the awk logic to build the summary string
+summary_logic='
+BEGIN { count=0; list="" }
+{
+    if (count==0) { list=$0 } else { list=list ", " $0 }
+    count++
 }
+END {
+    if (count>0) { print count " files renamed: " list }
+    else { print "No *.txt files found to rename." }
+}
+'
 
-if find "$DIR" -mindepth 1 -maxdepth 1 -type d -not -name '.*' -print -quit 2>/dev/null | grep -q '.'; then
-    
-    echo "The directory '$DIR' contains subdirectories."
-    read -r -p "Do you want to rename files in subdirectories too (y/N)? " RECURSIVE_CHOICE
-    
-    if [[ "$RECURSIVE_CHOICE" =~ ^[Yy]$ ]]; then
-        rename "$DIR" ""
+# --- Main Script ---
+
+# Check for subdirectories
+if [ -n "$(find . -mindepth 1 -maxdepth 1 -type d)" ]; then
+    #Ask if user wants to rename recursively
+    read -p "Subdirectories found. Apply rename recursively? (y/n): " choice
+    if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+        echo "Renaming recursively..."
+        #This part iterates through every file that contains ".txt" as their postfix 
+        find . -type f -name "*.txt" -exec sh -c "$rename_logic" {} \; | awk "$summary_logic"
     else
-        rename "$DIR" "-maxdepth 1"
+        echo "Renaming in $1 only..."
+        find . -maxdepth 1 -type f -name "*.txt" -exec sh -c "$rename_logic" {} \; | awk "$summary_logic"
     fi
 else
-    rename "$DIR" "-maxdepth 1"
+    find . -maxdepth 1 -type f -name "*.txt" -exec sh -c "$rename_logic" {} \; | awk "$summary_logic"
 fi
-
-if [ "$RENAME_COUNT" -gt 0 ]; then
-    CLEAN_LIST="${RENAMED_LIST%, }"
-    echo "$RENAME_COUNT files renamed: $CLEAN_LIST"
-else
-    echo "No .txt files were found or renamed in the specified directory."
-fi
-
-exit 0
-
